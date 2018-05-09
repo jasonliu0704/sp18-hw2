@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
+import java.lang.*;
 
 public class GlobeSortServer {
     private Server server;
@@ -85,14 +86,19 @@ public class GlobeSortServer {
         }
 
         @Override
-        public void sortIntegers(IntArray req, final StreamObserver<IntArray> responseObserver) {
+        public void sortIntegers(IntArray req, final StreamObserver<SortResponse> responseObserver) {
+            long t_start = System.nanoTime();
             Integer[] values = req.getValuesList().toArray(new Integer[req.getValuesList().size()]);
             Arrays.sort(values);
-            IntArray.Builder responseBuilder = IntArray.newBuilder();
+
+            SortResponse.Builder responseBuilder = SortResponse.newBuilder();
+            IntArray.Builder intArrayBuilder = IntArray.newBuilder();
             for(Integer val : values) {
-                responseBuilder.addValues(val);
+                intArrayBuilder.addValues(val);
             }
-            IntArray response = responseBuilder.build();
+            responseBuilder.setSortedArray(intArrayBuilder);
+            responseBuilder.setSortTime(System.nanoTime() - t_start);
+            SortResponse response = responseBuilder.build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         }
